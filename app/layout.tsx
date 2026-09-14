@@ -1,4 +1,5 @@
 import './globals.css';
+import './mobile.css';
 import Link from 'next/link';
 import { site } from '@/lib/config';
 
