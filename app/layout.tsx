@@ -8,7 +8,10 @@ export const metadata = {
   description: site.description,
   alternates: { canonical: '/' },
   openGraph: { title: site.name, description: site.description, type: 'website', url: site.url },
-  robots: { index: true, follow: true }
+  robots: { index: true, follow: true },
+  verification: {
+    google: 'jofjI846k09NoUuJSxJhukAE5lFXNgHzFxf58rlb4z4'
+  }
 };
 
 export default function RootLayout({children}:{children:React.ReactNode}){
