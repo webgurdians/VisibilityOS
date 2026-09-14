@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { getLatestEvents } from '@/lib/data';
 
-export const metadata={title:'AI Discovery Timeline'};
+export const revalidate = 300;
+export const metadata={title:'AI Discovery Timeline',description:'A chronological record of the infrastructure, products and research that changed how machines understand, retrieve and surface information.',alternates:{canonical:'/timeline'},openGraph:{url:'/timeline'}};
 
 export default async function Page(){
   const events=(await getLatestEvents(200)).reverse();
