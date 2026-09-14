@@ -27,9 +27,12 @@ const q2dEvent = {
   topics:['retrieval','agentic-discovery','query-fan-out','citations','source-selection','perplexity','rag','ai-discoverability','measurement','geo','llmo'],
   source:'perplexity-q2d-web-2026',
   sources:[
-    {slug:'perplexity-q2d-web-2026',title:'Q2D-Web: Evaluating First-Stage Retrievers at Scale',publisher:'Perplexity',publisher_text:'Perplexity',source_type:'official',published_at:'2026-09-09',url:'https://www.perplexity.ai/hub/blog/q2d-web'},
-    {slug:'q2d-web-paper-2026',title:'Q2D-Web: A Large-Scale Benchmark for Retrieval in Agentic RAG Systems',publisher:'arXiv',publisher_text:'arXiv',source_type:'research',published_at:'2026-09-08',url:'https://arxiv.org/abs/2609.08887'}
-  ]
+    {slug:'perplexity-q2d-web-2026',title:'Q2D-Web: Evaluating First-Stage Retrievers at Scale',publisher:'Perplexity',publisher_text:'Perplexity',source_type:'official',source_type_name:'Official announcement / documentation',evidence_tier:'A',published_at:'2026-09-09',url:'https://www.perplexity.ai/hub/blog/q2d-web'},
+    {slug:'q2d-web-paper-2026',title:'Q2D-Web: A Large-Scale Benchmark for Retrieval in Agentic RAG Systems',publisher:'arXiv',publisher_text:'arXiv',source_type:'research',source_type_name:'Original research paper',evidence_tier:'A',published_at:'2026-09-08',url:'https://arxiv.org/abs/2609.08887'}
+  ],
+  platforms:[{slug:'perplexity',name:'Perplexity'}],
+  claims:[{slug:'q2d-web-scale-and-agent-reformulation',statement:'Q2D-Web contains 190 million web documents and 69,721 agent-reformulated queries in 10 languages, sampled from nine months of PII-free production search traffic.',evidence_status:'established',confidence:.99}],
+  related_events:[]
 };
 
 const fallbackEvents = [
@@ -41,9 +44,9 @@ const fallbackEvents = [
 
 const fallbackSources = [
   ...q2dEvent.sources,
-  {slug:'geo-paper-2023',title:'GEO: Generative Engine Optimization',publisher:'arXiv',source_type:'research',published_at:'2023-11-16',url:'https://arxiv.org/abs/2311.09735'},
-  {slug:'google-ai-mode-2025',title:'Expanding AI Overviews and introducing AI Mode',publisher:'Google',source_type:'official',published_at:'2025-03-05',url:'https://blog.google/products/search/ai-mode-search/'},
-  {slug:'cloudflare-ai-traffic-options-2026',title:'Your site, your rules: new AI traffic options for all customers',publisher:'Cloudflare',source_type:'official',published_at:'2026-07-01',url:'https://blog.cloudflare.com/content-independence-day-ai-options/'}
+  {slug:'geo-paper-2023',title:'GEO: Generative Engine Optimization',publisher:'arXiv',publisher_text:'arXiv',source_type:'research',source_type_name:'Original research paper',evidence_tier:'A',published_at:'2023-11-16',url:'https://arxiv.org/abs/2311.09735'},
+  {slug:'google-ai-mode-2025',title:'Expanding AI Overviews and introducing AI Mode',publisher:'Google',publisher_text:'Google',source_type:'official',source_type_name:'Official announcement / documentation',evidence_tier:'A',published_at:'2025-03-05',url:'https://blog.google/products/search/ai-mode-search/'},
+  {slug:'cloudflare-ai-traffic-options-2026',title:'Your site, your rules: new AI traffic options for all customers',publisher:'Cloudflare',publisher_text:'Cloudflare',source_type:'official',source_type_name:'Official announcement / documentation',evidence_tier:'A',published_at:'2026-07-01',url:'https://blog.cloudflare.com/content-independence-day-ai-options/'}
 ];
 
 function dateString(value:any){ return value?.toISOString?.().slice(0,10) ?? String(value); }
@@ -59,15 +62,31 @@ export async function getEvent(slug:string){
   const rows=await sql`select * from public.events where slug=${slug} and status='published' limit 1`;
   if(!rows[0]) return null;
   const r:any=rows[0];
-  const topics=await sql`select t.slug from public.event_topics et join public.topics t on t.id=et.topic_id where et.event_id=${r.id} order by et.relevance,t.name`;
-  const sources=await sql`select s.slug,s.title,s.url,s.publisher_text,s.published_at,es.source_role from public.event_sources es join public.sources s on s.id=es.source_id where es.event_id=${r.id} order by es.source_order`;
-  return {...r,date:dateString(r.event_date),topics:topics.map((x:any)=>x.slug),sources};
+  const [topics,sources,platforms,claims,related,revisions]=await Promise.all([
+    sql`select t.slug,t.name,et.relevance from public.event_topics et join public.topics t on t.id=et.topic_id where et.event_id=${r.id} order by case when et.relevance='primary' then 0 else 1 end,t.name`,
+    sql`select s.slug,s.title,s.url,s.publisher_text,s.author_text,s.published_at,s.archived_url,es.source_role,es.source_order,st.slug as source_type,st.name as source_type_name,st.evidence_tier from public.event_sources es join public.sources s on s.id=es.source_id join public.source_types st on st.id=s.source_type_id where es.event_id=${r.id} order by es.source_order`,
+    sql`select p.slug,p.name,p.platform_type from public.event_platforms ep join public.platforms p on p.id=ep.platform_id where ep.event_id=${r.id} order by p.name`,
+    sql`select c.slug,c.statement,c.claim_type,c.confidence,ec.relation,es.slug as evidence_status,es.name as evidence_status_name from public.event_claims ec join public.claims c on c.id=ec.claim_id left join public.evidence_statuses es on es.id=c.evidence_status_id where ec.event_id=${r.id} and c.status='published' order by c.confidence desc nulls last`,
+    sql`select er.relationship_type,'outgoing' as direction,e.slug,e.title,e.event_date from public.event_relationships er join public.events e on e.id=er.to_event_id where er.from_event_id=${r.id} and e.status='published' union all select er.relationship_type,'incoming' as direction,e.slug,e.title,e.event_date from public.event_relationships er join public.events e on e.id=er.from_event_id where er.to_event_id=${r.id} and e.status='published' order by event_date desc`,
+    sql`select change_summary,changed_fields,created_at from public.revisions where entity_type='event' and entity_id=${r.id} order by created_at desc limit 10`
+  ]);
+  return {
+    ...r,
+    date:dateString(r.event_date),
+    topics:topics.map((x:any)=>x.slug),
+    topic_links:topics,
+    sources,
+    platforms,
+    claims,
+    related_events:related.map((x:any)=>({...x,date:dateString(x.event_date)})),
+    revisions
+  };
 }
 
 export async function getTopics(){ if(!sql) return fallbackTopics; return await sql`select * from public.topics order by name`; }
 
 export async function getTopic(slug:string){
-  if(!sql){const t=fallbackTopics.find(x=>x.slug===slug); return t?{...t,events:fallbackEvents.filter(e=>e.topics.includes(slug)).sort((a,b)=>b.date.localeCompare(a.date))}:null;}
+  if(!sql){const t=fallbackTopics.find(x=>x.slug===slug); return t?{...t,events:fallbackEvents.filter((e:any)=>e.topics?.includes(slug)).sort((a,b)=>b.date.localeCompare(a.date))}:null;}
   const r=await sql`select * from public.topics where slug=${slug} limit 1`; if(!r[0]) return null;
   const ev=await sql`select e.* from public.event_topics et join public.events e on e.id=et.event_id where et.topic_id=${r[0].id} and e.status='published' order by e.event_date desc`;
   return {...r[0],events:ev.map((e:any)=>({...e,date:dateString(e.event_date)}))};
@@ -75,14 +94,17 @@ export async function getTopic(slug:string){
 
 export async function getClaims(){
   if(!sql) return [
-    {slug:'google-ai-features-use-query-fan-out',statement:'Google AI features may use query fan-out to issue multiple related searches across subtopics and data sources.',status:'established',confidence:.98},
-    {slug:'geo-paper-reports-up-to-40-percent-visibility-lift',statement:'The original GEO paper reported that tested optimization strategies could improve measured visibility by up to 40% in its benchmark setting.',status:'strong',confidence:.88},
-    {slug:'q2d-web-scale-and-agent-reformulation',statement:'Q2D-Web contains 190 million web documents and 69,721 agent-reformulated queries in 10 languages, sampled from nine months of PII-free production search traffic.',status:'established',confidence:.99}
+    {slug:'google-ai-features-use-query-fan-out',statement:'Google AI features may use query fan-out to issue multiple related searches across subtopics and data sources.',evidence_status:'established',confidence:.98},
+    {slug:'geo-paper-reports-up-to-40-percent-visibility-lift',statement:'The original GEO paper reported that tested optimization strategies could improve measured visibility by up to 40% in its benchmark setting.',evidence_status:'strong',confidence:.88},
+    {slug:'q2d-web-scale-and-agent-reformulation',statement:'Q2D-Web contains 190 million web documents and 69,721 agent-reformulated queries in 10 languages, sampled from nine months of PII-free production search traffic.',evidence_status:'established',confidence:.99}
   ];
-  return await sql`select c.*,es.slug as evidence_status from public.claims c left join public.evidence_statuses es on es.id=c.evidence_status_id where c.status='published' order by c.confidence desc nulls last`;
+  return await sql`select c.*,es.slug as evidence_status,es.name as evidence_status_name from public.claims c left join public.evidence_statuses es on es.id=c.evidence_status_id where c.status='published' order by c.confidence desc nulls last`;
 }
 
-export async function getSources(){ if(!sql) return fallbackSources; return await sql`select * from public.sources order by published_at desc nulls last`; }
+export async function getSources(){
+  if(!sql) return fallbackSources;
+  return await sql`select s.*,st.slug as source_type,st.name as source_type_name,st.evidence_tier from public.sources s join public.source_types st on st.id=s.source_type_id order by s.published_at desc nulls last,s.title`;
+}
 
 export async function getResearchGaps(){
   if(!sql) return [
@@ -95,7 +117,38 @@ export async function getResearchGaps(){
 
 export async function searchEvents(q:string,limit=20){
   if(!q) return [];
-  if(!sql){const n=q.toLowerCase(); return fallbackEvents.filter(e=>Object.values(e).flat().join(' ').toLowerCase().includes(n)).slice(0,limit);}
+  if(!sql){const n=q.toLowerCase(); return fallbackEvents.filter((e:any)=>Object.values(e).flat().join(' ').toLowerCase().includes(n)).slice(0,limit);}
   const rows=await sql`select * from public.search_published_events(${q},${limit})`;
   return rows.map((r:any)=>({...r,date:dateString(r.event_date)}));
+}
+
+export async function searchCorpus(q:string,limit=50,days?:number){
+  if(!q) return [];
+  if(!sql){
+    const n=q.toLowerCase();
+    const events=fallbackEvents.filter((e:any)=>Object.values(e).flat().join(' ').toLowerCase().includes(n)).map((e:any)=>({kind:'event',slug:e.slug,title:e.title,summary:e.summary,date:e.date,href:`/events/${e.slug}`}));
+    const topics=fallbackTopics.filter((t:any)=>`${t.name} ${t.description}`.toLowerCase().includes(n)).map((t:any)=>({kind:'topic',slug:t.slug,title:t.name,summary:t.description,href:`/topics/${t.slug}`}));
+    return [...events,...topics].slice(0,limit);
+  }
+
+  const eventRows = days
+    ? await sql`select e.slug,e.title,e.summary,e.event_date from public.events e where e.status='published' and e.event_date >= current_date - (${days}::int * interval '1 day') and e.search_vector @@ websearch_to_tsquery('english',${q}) order by e.event_date desc limit ${limit}`
+    : await sql`select slug,title,summary,event_date from public.search_published_events(${q},${limit})`;
+
+  const [topicRows,claimRows,sourceRows,gapRows]=await Promise.all([
+    sql`select slug,name,description from public.topics where to_tsvector('english',coalesce(name,'')||' '||coalesce(description,'')) @@ websearch_to_tsquery('english',${q}) or name ilike ${`%${q}%`} order by name limit ${limit}`,
+    sql`select c.slug,c.statement,c.confidence,es.slug as evidence_status from public.claims c left join public.evidence_statuses es on es.id=c.evidence_status_id where c.status='published' and (to_tsvector('english',coalesce(c.statement,'')||' '||coalesce(c.scope,'')) @@ websearch_to_tsquery('english',${q}) or c.statement ilike ${`%${q}%`}) order by c.confidence desc nulls last limit ${limit}`,
+    sql`select s.slug,s.title,s.publisher_text,s.published_at,st.slug as source_type from public.sources s join public.source_types st on st.id=s.source_type_id where to_tsvector('english',coalesce(s.title,'')||' '||coalesce(s.publisher_text,'')||' '||coalesce(s.notes,'')) @@ websearch_to_tsquery('english',${q}) or s.title ilike ${`%${q}%`} order by s.published_at desc nulls last limit ${limit}`,
+    sql`select id,question,reason,status from public.research_gaps where to_tsvector('english',coalesce(question,'')||' '||coalesce(reason,'')) @@ websearch_to_tsquery('english',${q}) or question ilike ${`%${q}%`} order by created_at desc limit ${limit}`
+  ]);
+
+  const results=[
+    ...eventRows.map((r:any)=>({kind:'event',slug:r.slug,title:r.title,summary:r.summary,date:dateString(r.event_date),href:`/events/${r.slug}`})),
+    ...topicRows.map((r:any)=>({kind:'topic',slug:r.slug,title:r.name,summary:r.description,href:`/topics/${r.slug}`})),
+    ...claimRows.map((r:any)=>({kind:'claim',slug:r.slug,title:r.statement,summary:`Evidence: ${r.evidence_status||'unclassified'}${r.confidence!=null?` · Confidence ${Math.round(Number(r.confidence)*100)}%`:''}`,href:`/evidence#claim-${r.slug}`})),
+    ...sourceRows.map((r:any)=>({kind:'source',slug:r.slug,title:r.title,summary:`${r.publisher_text||'Source'} · ${r.source_type}`,date:r.published_at?dateString(r.published_at):undefined,href:`/research#source-${r.slug}`})),
+    ...gapRows.map((r:any)=>({kind:'research-gap',slug:String(r.id),title:r.question,summary:r.reason||'Open research question',href:`/research#gap-${r.id}`}))
+  ];
+
+  return results.slice(0,limit);
 }
