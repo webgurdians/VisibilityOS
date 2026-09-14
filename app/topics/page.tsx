@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { getTopics } from '@/lib/data';
 
-export const metadata={title:'Topics'};
+export const revalidate = 300;
+export const metadata={title:'Topics',description:'A controlled semantic vocabulary for AI visibility, retrieval, citations, discoverability, agentic search and related systems.',alternates:{canonical:'/topics'},openGraph:{url:'/topics'}};
 
 export default async function Page(){
   const topics=await getTopics();
