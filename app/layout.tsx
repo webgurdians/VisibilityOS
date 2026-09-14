@@ -7,6 +7,11 @@ export const metadata = {
   title: { default: site.name, template: `%s | ${site.name}` },
   description: site.description,
   alternates: { canonical: '/' },
+  icons: {
+    icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
+    shortcut: '/icon.svg',
+    apple: '/icon.svg'
+  },
   openGraph: { title: site.name, description: site.description, type: 'website', url: site.url },
   robots: { index: true, follow: true },
   verification: {
