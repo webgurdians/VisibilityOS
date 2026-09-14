@@ -2,12 +2,18 @@ import Link from 'next/link';
 import { getLatestEvents, getTopics, getSources, getClaims, getResearchGaps } from '@/lib/data';
 import { site } from '@/lib/config';
 
+export const revalidate = 300;
+export const metadata={
+  alternates:{canonical:'/'},
+  openGraph:{url:'/'},
+};
+
 const promptLinks = [
-  {q:'What changed in AI search this week?',href:'/search?q=AI+search'},
+  {q:'What changed in AI search this week?',href:'/search?q=AI+search&days=7'},
   {q:'How did GEO begin?',href:'/topics/geo'},
   {q:'What is query fan-out?',href:'/topics/query-fan-out'},
   {q:'Show me verified AI citation research',href:'/search?q=citations'},
-  {q:'How does ChatGPT discover sources?',href:'/topics/chatgpt-search'},
+  {q:'How does ChatGPT discover sources?',href:'/search?q=ChatGPT+sources'},
   {q:'What do we actually know about AI visibility?',href:'/evidence'}
 ];
 
@@ -36,8 +42,7 @@ export default async function Home(){
 
     <section className="shell homeSection"><div className="sectionKicker"><span className="eyebrow">Latest intelligence</span><Link href="/timeline">View full timeline →</Link></div><div className="sectionhead homeHead"><div><h2>What changed, and why it matters.</h2></div><p>Every update is placed inside a persistent historical, semantic and evidentiary record instead of disappearing into a news archive.</p></div>
       <div className="grid featureGrid">
-        <Link className="card featureCard accentCard" href="/events/perplexity-q2d-web-retrieval-benchmark"><div className="meta"><time>2026-09-08</time><span className="pill">research</span></div><h3>Perplexity Q2D-Web maps the retrieval stage behind agentic search</h3><p>Nearly 70,000 machine-reformulated queries show why the query a user types is not necessarily the query your content competes for.</p><div className="cardFoot"><span>Perplexity</span><span>Read evidence record →</span></div></Link>
-        {events.slice(0,5).map((e:any)=><Link className="card featureCard" href={`/events/${e.slug}`} key={e.slug}><div className="meta"><time>{e.date}</time><span className="pill">{e.significance||e.historical_significance}</span></div><h3>{e.title}</h3><p>{e.summary}</p><div className="cardFoot"><span>Event record</span><span>Open →</span></div></Link>)}
+        {events.map((e:any,i:number)=><Link className={`card featureCard ${i===0?'accentCard':''}`} href={`/events/${e.slug}`} key={e.slug}><div className="meta"><time>{e.date}</time><span className="pill">{e.significance||e.historical_significance}</span></div><h3>{e.title}</h3><p>{e.summary}</p><div className="cardFoot"><span>Event record</span><span>Open →</span></div></Link>)}
       </div>
     </section>
 
