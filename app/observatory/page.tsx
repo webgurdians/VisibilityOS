@@ -1,3 +1,4 @@
+import './observatory.css';
 import Link from 'next/link';
 import { getExperiments, getMeasurementPlatforms, getObservatoryStats, getRecentObservations } from '@/lib/observatory';
 
