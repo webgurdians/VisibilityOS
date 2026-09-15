@@ -22,8 +22,8 @@ export const metadata = {
 
 export default function RootLayout({children}:{children:React.ReactNode}){
   return <html lang="en"><body>
-    <header className="nav"><div className="shell navin"><Link className="brand" href="/">Visibility<span>OS</span></Link><nav className="navlinks" aria-label="Primary navigation"><Link href="/timeline">Timeline</Link><Link href="/topics">Topics</Link><Link href="/evidence">Evidence</Link><Link href="/research">Research</Link><Link href="/search">Search</Link></nav></div></header>
+    <header className="nav"><div className="shell navin"><Link className="brand" href="/">Visibility<span>OS</span></Link><nav className="navlinks" aria-label="Primary navigation"><Link href="/observatory">Observatory</Link><Link href="/methodology">Methodology</Link><Link href="/timeline">Timeline</Link><Link href="/topics">Topics</Link><Link href="/evidence">Evidence</Link><Link href="/research">Research</Link><Link href="/search">Search</Link></nav></div></header>
     {children}
-    <footer className="footer"><div className="shell">Visibility OS is a living, evidence-backed reference system for AI discovery. Facts, interpretation and uncertainty are kept separate.</div></footer>
+    <footer className="footer"><div className="shell">Visibility OS is a living, evidence-backed measurement and research system for AI discovery. Facts, interpretation and uncertainty are kept separate.</div></footer>
   </body></html>
 }
