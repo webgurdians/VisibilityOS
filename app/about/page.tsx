@@ -14,7 +14,7 @@ export default function AboutPage(){
   };
   return <main className="shell">
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(jsonLd)}} />
-    <section className="hero"><span className="eyebrow">Why Visibility OS exists</span><h1>Document the system before claiming to understand it.</h1><p className="lead">Visibility OS is a living evidence record for AI discovery, retrieval, citation and representation.</p></section>
+    <section className="hero aboutHero"><span className="eyebrow">Why Visibility OS exists</span><h1>Document the system before claiming to understand it.</h1><p className="lead">Visibility OS is a living evidence record for AI discovery, retrieval, citation and representation.</p></section>
     <section style={{maxWidth:'820px'}}>
       <h2>An unexpected starting point</h2>
       <p>Visibility OS was created by <Link href="/people/neel-sen">Neel Sen</Link>, founder of DearStory, after an unexpected pattern emerged while building the cinematic memoir studio. Some early customers reported discovering DearStory through AI-mediated recommendations and search experiences despite little or no paid acquisition.</p>
