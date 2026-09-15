@@ -1,0 +1,6 @@
+import { neon } from '@neondatabase/serverless';
+import Link from 'next/link';
+import AdminNav from '../_components/AdminNav';
+export const dynamic='force-dynamic';
+export const metadata={title:'Events | Research Console',robots:{index:false,follow:false}};
+export default async function Events(){const sql=process.env.DATABASE_URL?neon(process.env.DATABASE_URL):null;const rows=sql?await sql`select id,slug,title,event_date,status,historical_significance,updated_at from public.events order by event_date desc nulls last, updated_at desc limit 100`:[];return <main className="shell"><section className="hero"><span className="eyebrow">Evidence editor</span><h1>Events</h1><p className="lead">Inspect the canonical event record before editing and publishing workflows are enabled.</p></section><AdminNav/><div style={{display:'grid',gap:'1rem'}}>{rows.map((r:any)=><article className="card" key={r.id}><div style={{display:'flex',gap:'.5rem',flexWrap:'wrap'}}><span className="pill">{r.status}</span>{r.historical_significance&&<span className="pill">{r.historical_significance}</span>}<span className="meta">{r.event_date?new Date(r.event_date).toLocaleDateString('en-CA'):'Undated'}</span></div><h3>{r.title}</h3><p className="meta">/{r.slug}</p>{r.status==='published'&&<Link href={`/events/${r.slug}`}>View public record →</Link>}</article>)}</div></main>}
