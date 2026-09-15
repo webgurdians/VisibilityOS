@@ -19,7 +19,7 @@ export default function NeelSenPage(){
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(jsonLd)}} />
     <section className="hero"><span className="eyebrow">Founder & Practitioner-Researcher</span><h1>Neel Sen</h1><p className="lead">Building Visibility OS to document what can actually be established about AI discovery.</p></section>
     <section style={{maxWidth:'820px'}}>
-      <p><strong>Neel Sen</strong>, legally named Bijoy Sen, is the founder of Visibility OS and DearStory.</p>
+      <p><strong>Neel Sen</strong>, also known as Bijoy Sen, is the founder of Visibility OS and DearStory.</p>
       <p>His work on Visibility OS began with a practical question. After early DearStory customers reported discovering the business through AI-mediated recommendations and search experiences, he wanted to understand what could actually explain that visibility.</p>
       <p>Rather than treating the outcome as proof of a ranking formula, Neel began assembling official documentation, research, product changes, claims, evidence grades and unresolved questions into a structured historical record.</p>
       <p>He describes his role as a practitioner-researcher rather than an SEO or AI-search expert. Visibility OS is designed so its evidence, methodology, revisions and experiments can carry the argument instead of relying on credentials.</p>
