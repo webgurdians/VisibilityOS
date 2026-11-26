@@ -20,6 +20,7 @@ export async function runAudit(raw:string,fetcher=fetchPublicDocument){
  const robots=await get(new URL('/robots.txt',url),'robots.txt',p=>p==='/robots.txt');
  const valid=!!robots&&robots.status===200&&!robots.issue&&/^text\/plain(?:;|$)/i.test(robots.contentType)&&!/^\s*</.test(robots.body);
  const absent=robots?.status===404||robots?.status===410;
+ if(robots?.status===200&&!valid)diagnostics.push({resource:'robots.txt validation',status:200,detail:'Expected plain-text robots policy; received HTML or another invalid response. Crawler permissions remain unknown.'});
  const policy=inspectRobots(valid?200:0,valid?robots!.body:'');
  const allowed=(path:string)=>!!absent||(valid&&evaluateRobots(robots!.body,'VisibilityOSAudit',path).status==='allowed');
  const page=await get(url,'Homepage',allowed);
@@ -30,6 +31,6 @@ export async function runAudit(raw:string,fetcher=fetchPublicDocument){
  if(!valid&&!absent)recommendations.push('Investigate robots.txt retrieval using the diagnostics below before drawing crawler conclusions.');
  if(!findings.length)recommendations.push('Resolve homepage retrieval or policy uncertainty before assessing metadata.');
  for(const f of findings)if(f.status==='warning')recommendations.push('Review '+f.check+' against the sampled evidence.');
- if(sitemap?.status!==200)recommendations.push('Verify sitemap availability and its robots.txt declaration.');
+ if(inspectSitemap(sitemap?.issue?0:sitemap?.status??0,sitemap?.body??'').status!=='detected')recommendations.push('Verify sitemap availability and its robots.txt declaration.');
  return {website:url.origin,checkedAt,homepageStatus:page?.status??null,homepageNote:findings.length?'Sampled HTML response':'Homepage analysis incomplete',findings,robots:policy,sitemap:inspectSitemap(sitemap?.issue?0:sitemap?.status??0,sitemap?.body??''),diagnostics,recommendations,aiVisibility:'not measured',limitations:['Homepage only','At most one same-origin redirect per resource; robots redirects restricted to /robots.txt','One same-origin sitemap sampled','No JavaScript rendering','No search index verification']};
 }
