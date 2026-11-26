@@ -24,7 +24,7 @@ async function once(u:URL,deadline:number):Promise<FetchResult>{
  const address=addresses[0].address;
  if(!remaining()) throw new Error('Fetch deadline exceeded');
  return new Promise((resolve,reject)=>{
-  const req=(u.protocol==='https:'?https:http)(u,{agent:false,family:4,lookup:(_host,_opts,cb)=>cb(null,address,4),headers:{'User-Agent':'VisibilityOSAudit/0.1','Accept':'text/html,text/plain,application/xml,text/xml','Accept-Encoding':'identity'}},res=>{
+  const req=(u.protocol==='https:'?https:http)(u,{agent:false,family:4,autoSelectFamily:false,lookup:(_host,_opts,cb)=>cb(null,address,4),headers:{'User-Agent':'VisibilityOSAudit/0.1','Accept':'text/html,text/plain,application/xml,text/xml','Accept-Encoding':'identity'}},res=>{
    const status=res.statusCode||0; const contentType=String(res.headers['content-type']||'');
    const location=res.headers.location;
    if(status>=300&&status<400){res.destroy();resolve({url:u.href,status,body:'',contentType,location});return;}
@@ -41,11 +41,11 @@ async function once(u:URL,deadline:number):Promise<FetchResult>{
 }
 function resolve4(host:string){return lookup(host,{all:true,family:4});}
 // Internal transport only. Callers must implement robots policy and durable quotas before use.
-export async function fetchPublicDocument(raw:string):Promise<FetchResult>{
+export async function fetchPublicDocument(raw:string, followRedirects=true):Promise<FetchResult>{
  let u=validateUrl(raw);const deadline=Date.now()+10000;
  for(let i=0;i<=3;i++){
   const r=await once(u,deadline);
-  if(r.status>=300&&r.status<400&&r.location){u=validateUrl(new URL(r.location,u).href);continue;}
+  if(followRedirects&&r.status>=300&&r.status<400&&r.location){u=validateUrl(new URL(r.location,u).href);continue;}
   return r;
  }
  throw new Error('Redirect limit exceeded');
