@@ -1,14 +1,2 @@
-import Link from 'next/link';
-
-const items = [
-  ['Overview','/admin'], ['Inbox','/admin/inbox'], ['Events','/admin/events'],
-  ['Evidence','/admin/evidence'], ['Sources','/admin/sources'], ['Experiments','/admin/experiments'],
-  ['Research gaps','/admin/gaps'], ['AI readiness audit','/admin/audit-preview'],
-];
-
-export default function AdminNav() {
-  return <nav aria-label="Research Console" style={{display:'flex',gap:'.55rem',flexWrap:'wrap',margin:'0 0 2rem'}}>
-    {items.map(([label,href]) => <Link key={href} href={href} className="pill">{label}</Link>)}
-    <Link href="/research" className="pill">Public site ↗</Link><form action="/login/logout" method="post"><button type="submit" className="pill">Sign out</button></form>
-  </nav>;
-}
+// Navigation is now supplied by the shared admin layout.
+export default function AdminNav(){return null;}
