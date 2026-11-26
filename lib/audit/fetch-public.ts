@@ -13,7 +13,7 @@ export function validateUrl(raw:string):URL {
  if(!['http:','https:'].includes(u.protocol)||u.username||u.password||u.port||isIP(u.hostname)||u.hostname.includes(':')||!u.hostname.includes('.')||u.hostname.endsWith('.')||/\.(localhost|local|internal|test|invalid|example|onion)$/i.test(u.hostname)) throw new Error('Unsupported public website URL');
  u.hash=''; return u;
 }
-export type FetchResult={url:string;status:number;body:string;contentType:string;location?:string};
+export type FetchResult={url:string;status:number;body:string;contentType:string;location?:string;issue?:string};
 async function once(u:URL,deadline:number):Promise<FetchResult>{
  const remaining=()=>Math.max(0,deadline-Date.now());
  const addresses=await new Promise<Awaited<ReturnType<typeof resolve4>>>((resolve,reject)=>{
@@ -28,8 +28,9 @@ async function once(u:URL,deadline:number):Promise<FetchResult>{
    const status=res.statusCode||0; const contentType=String(res.headers['content-type']||'');
    const location=res.headers.location;
    if(status>=300&&status<400){res.destroy();resolve({url:u.href,status,body:'',contentType,location});return;}
-   if(res.headers['content-encoding']&&res.headers['content-encoding']!=='identity'){res.destroy();reject(new Error('Unsupported encoding'));return;}
-   if(!/^(text\/(html|plain|xml)|application\/(xml|xhtml\+xml))(;|$)/i.test(contentType)){res.destroy();reject(new Error('Unsupported content type'));return;}
+   if(status!==200){res.destroy();resolve({url:u.href,status,body:'',contentType});return;}
+   if(res.headers['content-encoding']&&res.headers['content-encoding']!=='identity'){res.destroy();resolve({url:u.href,status,body:'',contentType,issue:'Unsupported encoding'});return;}
+   if(!/^(text\/(html|plain|xml)|application\/(xml|xhtml\+xml))(;|$)/i.test(contentType)){res.destroy();resolve({url:u.href,status,body:'',contentType,issue:'Unsupported content type'});return;}
    let bytes=0;const chunks:Buffer[]=[];
    res.on('data',(chunk:Buffer)=>{bytes+=chunk.length;if(bytes>512*1024){res.destroy(new Error('Response exceeds limit'));return;}chunks.push(chunk);});
    res.on('error',reject);res.on('aborted',()=>reject(new Error('Response aborted')));
