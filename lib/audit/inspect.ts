@@ -10,6 +10,6 @@ export function inspectHtml(html:string): Finding[] {
  const schema=tags.filter(t=>/^<script\b/i.test(t)&&attr(t,'type')?.toLowerCase()==='application/ld+json');
  const result=(check:string,value:string|undefined):Finding=>({check,status:value?'pass':'warning',evidence:value||'Not detected in sampled HTML'});
  return [result('Page title',title),result('Meta description',description&&attr(description,'content')),result('Canonical declaration',canonical&&attr(canonical,'href')),
- {check:'Robots meta',status:robots.some(x=>/\b(noindex|none)\b/i.test(x))?'warning':'unknown',evidence:robots.join('; ')||'No robots meta detected; HTTP and robots.txt directives not assessed'},
+ {check:'Robots meta',status:robots.some(x=>/\b(noindex|none)\b/i.test(x))?'warning':robots.some(x=>/\bindex\b/i.test(x))?'pass':'unknown',evidence:robots.join('; ')||'No robots meta detected; HTTP and robots.txt directives not assessed'},
  {check:'JSON-LD declaration',status:schema.length?'pass':'warning',evidence:schema.length?schema.length+' declaration(s); validity not assessed':'Not detected in sampled HTML'}];
 }
