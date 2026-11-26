@@ -9,3 +9,5 @@ test('missing declarations and noindex',()=>{
  const r=inspectHtml('<!-- <title>Fake</title> --><meta name="robots" content="noindex">');
  assert.equal(r[0].status,'warning'); assert.equal(r[3].status,'warning');
 });
+
+test('decodes metadata evidence once',()=>{const r=inspectHtml('<title>A &amp; B &amp;lt;</title><meta name="description" content="Life&#x27;s &#128512;">');assert.equal(r[0].evidence,'A & B &lt;');assert.equal(r[1].evidence,"Life's 😀");});
