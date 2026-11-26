@@ -16,6 +16,7 @@ export function evaluateRobots(body:string,agent:string,path:string){
  const exact=groups.filter(g=>g.agents.includes(name));const selected=exact.length?exact:groups.filter(g=>g.agents.includes('*'));
  // Conservative subset: percent-encoded or non-ASCII paths require a full RFC 9309 implementation.
  if(/[^\x20-\x7e]|%/.test(path)||selected.some(g=>g.rules.some(r=>/[^\x20-\x7e]|%/.test(r.pattern))))return {status:'unknown' as const,rule:null};
+ if(selected.reduce((n,g)=>n+g.rules.reduce((m,r)=>m+r.pattern.length*(path.length+1),0),0)>2000000)return {status:'unknown' as const,rule:null};
  let best:Rule|undefined;let length=-1;
  for(const g of selected)for(const r of g.rules){
   const anchored=r.pattern.endsWith('$');const p=anchored?r.pattern.slice(0,-1):r.pattern;
@@ -29,7 +30,7 @@ export function evaluateRobots(body:string,agent:string,path:string){
  }
  return {status:best&&!best.allow?'disallowed' as const:'allowed' as const,rule:best?.pattern??null};
 }
-export const auditAgents=['GPTBot','OAI-SearchBot','ChatGPT-User','Googlebot','Google-Extended','PerplexityBot','ClaudeBot','Bingbot'] as const;
+export const auditAgents=['GPTBot','OAI-SearchBot','ChatGPT-User','Googlebot','Google-Extended','PerplexityBot','ClaudeBot','Claude-SearchBot','Claude-User','Bingbot'] as const;
 export function inspectRobots(status:number,body:string,path='/'){
  if(status!==200)return {sitemaps:[],agents:auditAgents.map(agent=>({agent,status:'unknown',rule:null})),note:'robots.txt not successfully retrieved; no access conclusion'};
  const parsed=parseRobots(body);
