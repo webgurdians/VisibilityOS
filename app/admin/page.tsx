@@ -18,10 +18,12 @@ async function counts() {
 }
 
 export default async function AdminPage() {
-  const data=await counts();
+  const data=await counts().catch(()=>null);
   const cards=[['Events',data?.events??'—'],['Sources',data?.sources??'—'],['Claims',data?.claims??'—'],['Research gaps',data?.gaps??'—'],['Experiments',data?.experiments??'—'],['Observations',data?.observations??'—']];
   return <main className="shell"><section className="hero"><span className="eyebrow">Private research operations</span><h1>Research Console</h1><p className="lead">Review evidence, structure research, manage experiments and publish to the Visibility OS evidence system.</p></section><AdminNav/>
     <section><div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',gap:'1rem',flexWrap:'wrap'}}><h2>System overview</h2><Link href="/admin/inbox" className="pill">{data?.inbox??'—'} awaiting review →</Link></div><div className="grid">{cards.map(([label,value])=><div className="card" key={String(label)}><div className="meta">{label}</div><h2>{value}</h2></div>)}</div></section>
+    {!data&&<p role="status">Research statistics are temporarily unavailable. You can still open the private audit.</p>}
+    <section style={{marginTop:'1.5rem'}}><h2>AI visibility tools</h2><div className="grid"><Link href="/admin/audit-preview" className="card"><span className="eyebrow">Private pilot</span><h3>AI readiness audit</h3><p>Inspect crawler policies, website metadata and sitemap evidence. Actual AI search visibility is not measured.</p><span className="pill">Run audit →</span></Link></div></section>
     <section style={{marginTop:'3rem'}}><h2>Research workflow</h2><div className="grid">
       <Link href="/admin/inbox" className="card"><h3>Research inbox</h3><p>Candidate papers, official changes and industry findings awaiting review.</p><span className="pill">Open inbox →</span></Link>
       <Link href="/admin/events" className="card"><h3>Evidence editor</h3><p>Inspect canonical events, sources and claim-level evidence.</p><span className="pill">Open records →</span></Link>
