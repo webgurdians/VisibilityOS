@@ -3,7 +3,7 @@ import Link from 'next/link';
 const items = [
   ['Overview','/admin'], ['Inbox','/admin/inbox'], ['Events','/admin/events'],
   ['Evidence','/admin/evidence'], ['Sources','/admin/sources'], ['Experiments','/admin/experiments'],
-  ['Research gaps','/admin/gaps'],
+  ['Research gaps','/admin/gaps'], ['AI readiness audit','/admin/audit-preview'],
 ];
 
 export default function AdminNav() {
