@@ -9,6 +9,6 @@ const items = [
 export default function AdminNav() {
   return <nav aria-label="Research Console" style={{display:'flex',gap:'.55rem',flexWrap:'wrap',margin:'0 0 2rem'}}>
     {items.map(([label,href]) => <Link key={href} href={href} className="pill">{label}</Link>)}
-    <Link href="/research" className="pill">Public site ↗</Link>
+    <Link href="/research" className="pill">Public site ↗</Link><form action="/login/logout" method="post"><button type="submit" className="pill">Sign out</button></form>
   </nav>;
 }
